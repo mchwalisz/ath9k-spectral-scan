@@ -9,9 +9,9 @@ plot_pause=0.05
 #   <base64 line ..>\n
 #   .\n
 spectral_scan() {
-	cat << 'EOF' | ssh steve sh
+	cat << 'EOF' | ssh root@tplink02 sh
 
-ifconfig wlan1 up
+ifconfig wlan0 up
 
 while true
 do
@@ -19,10 +19,11 @@ do
 	do
 		echo $i
 		echo chanscan \
-			| tee /sys/kernel/debug/ieee80211/phy*/ath9k/spectral_scan_ctl \
+			| tee /sys/kernel/debug/ieee80211/phy0/ath9k/spectral_scan_ctl \
 			>/dev/null
-		iw wlan1 scan chan-time 5 >/dev/null
-		cat /sys/kernel/debug/ieee80211/phy*/ath9k/spectral_scan0 | base64
+		iw wlan0 scan >/dev/null
+		# iw wlan0 scan chan-time 5 >/dev/null
+		cat /sys/kernel/debug/ieee80211/phy0/ath9k/spectral_scan0 | base64
 		echo .
 	done
 done
@@ -44,7 +45,7 @@ process() {
 		done | base64 -d > /tmp/fft.dump.$i
 
 		cat /tmp/fft.dump.all > /tmp/fft.dump.all.new
-		fft2txt < /tmp/fft.dump.$i | awk '{print $4 " " $6}' >> /tmp/fft.dump.all.new
+		./fft2txt < /tmp/fft.dump.$i | awk '{print $4 " " $6}' >> /tmp/fft.dump.all.new
 		tail -n $max_samples < /tmp/fft.dump.all.new > /tmp/fft.dump.all.new.limited
 		mv /tmp/fft.dump.all.new.limited /tmp/fft.dump.all
 
